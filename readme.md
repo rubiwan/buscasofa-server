@@ -13,6 +13,12 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ```
 
+Para instalar las dependencias: 
+
+```
+npm install
+```
+
 Para lanzar el servidor de desarrollo:
 
 ```
