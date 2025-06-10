@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
-const SECRET = require("./secret").secret; // Cambia esto en producción
+const SECRET = require("./secret").secret;
 
 const app = express();
 app.use(express.json());
@@ -24,7 +24,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+      );
     `);
         console.log('Creando la tabla de comentarios si no existe...');
         db.run(`
@@ -103,11 +103,55 @@ app.post('/api/comments', (req, res) => {
 // Obtener comentarios de una estación
 app.get('/api/comments/:station_id', (req, res) => {
     db.all(
-        'SELECT username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
+        'SELECT id, username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
         [req.params.station_id],
         (err, rows) => {
             if (err) return res.status(500).json({ message: 'Error al obtener comentarios', error: err.message });
             res.json(rows);
+        }
+    );
+});
+
+// Editar comentario por id
+app.put('/api/comments/:id', (req, res) => {
+    const { token, comment } = req.body;
+    if (!token || !comment) return res.status(400).json({ message: 'Datos incompletos' });
+
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+    } catch {
+        return res.status(401).json({ message: 'Token inválido' });
+    }
+
+    db.run(
+        'UPDATE comments SET comment = ? WHERE id = ?',
+        [comment, req.params.id],
+        function (err) {
+            if (err) return res.status(500).json({ message: 'Error al editar comentario', error: err.message });
+            res.json({ message: 'Comentario editado' });
+        }
+    );
+});
+
+// Eliminar comentario por id
+app.delete('/api/comments/:id', (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ message: 'Token requerido' });
+
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+    } catch {
+        return res.status(401).json({ message: 'Token inválido' });
+    }
+
+    db.run(
+        'DELETE FROM comments WHERE id = ?',
+        [req.params.id],
+        function (err) {
+            if (err) return res.status(500).json({ message: 'Error al eliminar comentario', error: err.message });
+            res.json({ message: 'Comentario eliminado' });
         }
     );
 });
