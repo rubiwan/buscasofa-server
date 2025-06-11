@@ -20,26 +20,32 @@ const db = new sqlite3.Database('./database.db', (err) => {
         console.error('Error al abrir la base de datos:', err.message);
     } else {
         console.log('Conectado a la base de datos SQLite');
+
         console.log('Creando la tabla de usuarios si no existe...');
         db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        email TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL UNIQUE,
+                    email TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
     `);
+    
+        // console.log('Eliminando la tabla de comentarios...');
+        // db.run(`DROP TABLE comments`);
+
         console.log('Creando la tabla de comentarios si no existe...');
         db.run(`
-      CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        station_id TEXT NOT NULL,
-        user_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
-        comment TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+                CREATE TABLE IF NOT EXISTS comments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    station_id TEXT NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    username TEXT NOT NULL,
+                    comment TEXT NOT NULL,
+                    parent_id INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
     `);
     }
 });
@@ -94,7 +100,7 @@ app.post('/api/login', (req, res) => {
  * Guardar comentario
  */
 app.post('/api/comments', (req, res) => {
-    const { token, station_id, comment } = req.body;
+    const { token, station_id, comment, parent_id } = req.body;
     if (!token || !station_id || !comment) return res.status(400).json({ message: 'Datos incompletos' });
 
     let payload;
@@ -105,8 +111,8 @@ app.post('/api/comments', (req, res) => {
     }
 
     db.run(
-        'INSERT INTO comments (station_id, user_id, username, comment) VALUES (?, ?, ?, ?)',
-        [station_id, payload.id, payload.username, comment],
+        'INSERT INTO comments (station_id, user_id, username, comment, parent_id) VALUES (?, ?, ?, ?, ?)',
+        [station_id, payload.id, payload.username, comment, parent_id || null],
         function (err) {
             if (err) return res.status(500).json({ message: 'Error al guardar comentario', error: err.message });
             res.status(201).json({ message: 'Comentario guardado' });
@@ -119,7 +125,7 @@ app.post('/api/comments', (req, res) => {
  */
 app.get('/api/comments/:station_id', (req, res) => {
     db.all(
-        'SELECT id, username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
+        'SELECT id, username, comment, created_at, parent_id FROM comments WHERE station_id = ? ORDER BY created_at DESC',
         [req.params.station_id],
         (err, rows) => {
             if (err) return res.status(500).json({ message: 'Error al obtener comentarios', error: err.message });
