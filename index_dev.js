@@ -10,7 +10,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Inicializa la base de datos SQLite
+/**
+ * Conexión a la base de datos SQLite
+ *
+ * @type {Database}
+ */
 const db = new sqlite3.Database('./database.db', (err) => {
     if (err) {
         console.error('Error al abrir la base de datos:', err.message);
@@ -40,7 +44,9 @@ const db = new sqlite3.Database('./database.db', (err) => {
     }
 });
 
-// Registro de usuario
+/**
+ * Registro de usuario
+ */
 app.post('/api/register', (req, res) => {
     const { username, email, password } = req.body;
     if (!username || !email || !password)
@@ -55,13 +61,19 @@ app.post('/api/register', (req, res) => {
             [username, email, hashedPassword],
             function (err) {
                 if (err) return res.status(500).json({ message: 'Error en el servidor', error: err.message });
-                res.status(201).json({ message: 'Usuario registrado correctamente' });
+                db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
+                    if (err) return res.status(500).json({ message: 'Error al obtener usuario', error: err.message });
+                    const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '1h' });
+                    res.status(201).json({ message: 'Usuario registrado correctamente', token, username: user.username });
+                });
             }
         );
     });
 });
 
-// Login de usuario
+/**
+ * Login de usuario
+ */
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password)
@@ -78,7 +90,9 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Añadir comentario
+/**
+ * Guardar comentario
+ */
 app.post('/api/comments', (req, res) => {
     const { token, station_id, comment } = req.body;
     if (!token || !station_id || !comment) return res.status(400).json({ message: 'Datos incompletos' });
@@ -100,7 +114,9 @@ app.post('/api/comments', (req, res) => {
     );
 });
 
-// Obtener comentarios de una estación
+/**
+ * Obtener comentarios de una estación
+ */
 app.get('/api/comments/:station_id', (req, res) => {
     db.all(
         'SELECT id, username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
@@ -112,7 +128,9 @@ app.get('/api/comments/:station_id', (req, res) => {
     );
 });
 
-// Editar comentario por id
+/**
+ * Editar comentario
+ */
 app.put('/api/comments/:id', (req, res) => {
     const { token, comment } = req.body;
     if (!token || !comment) return res.status(400).json({ message: 'Datos incompletos' });
@@ -134,7 +152,9 @@ app.put('/api/comments/:id', (req, res) => {
     );
 });
 
-// Eliminar comentario por id
+/**
+ * Eliminar comentario
+ */
 app.delete('/api/comments/:id', (req, res) => {
     const { token } = req.body;
     if (!token) return res.status(400).json({ message: 'Token requerido' });
@@ -155,5 +175,38 @@ app.delete('/api/comments/:id', (req, res) => {
         }
     );
 });
+
+/**
+ * Obtener comentarios de un usuario
+ */
+app.get('/api/profile/user', (req, res) => {
+
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+    const token = authHeader.split(' ')[1];
+
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+
+    } catch {
+        return res.status(401).json({ message: 'Token inválido' });
+    }
+
+    db.all(
+        'SELECT * FROM comments WHERE user_id = ? ORDER BY created_at DESC',
+        [payload.id],
+        (err, rows) => {
+            if (err) return res.status(500).json({ message: 'Error al obtener tus comentarios', error: err.message });
+            const fs = require('fs');
+            const path = require('path');
+            console.log('Rows devueltas:', rows);
+            res.json(rows);
+        }
+    );
+});
+
 
 app.listen(4000, () => console.log('Servidor backend (SQLite) en http://localhost:4000'));
