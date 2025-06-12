@@ -11,6 +11,8 @@ jest.mock('jsonwebtoken', () => ({
     sign: jest.fn(() => 'fake-jwt-token')
 }));
 
+
+
 /**
  * Pruebas para registerUser
  */
@@ -82,7 +84,7 @@ describe('registerUser', () => {
  * Pruebas para loginUser
  */
 describe('loginUser', () => {
-    it('debería rechazar si falta el email o password', () => {
+    it('debería rechazar si falta el email o password', async () => {
         const req = {
             body: { email: '', password: '' }
         };
@@ -92,7 +94,7 @@ describe('loginUser', () => {
         };
         const db = {};
 
-        loginUser(req, res, db);
+        await loginUser(req, res, db);
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({ message: 'Todos los campos son obligatorios' });
