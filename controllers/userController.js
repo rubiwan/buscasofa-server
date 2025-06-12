@@ -1,5 +1,8 @@
 const { registerUserLogic } = require('../services/userService');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const SECRET = process.env.JWT_SECRET || 'test_secret';
+
 
 function registerUser(req, res, db) {
     registerUserLogic(req.body, db)
@@ -22,14 +25,26 @@ function loginUser(req, res, db) {
             return res.status(401).json({ message: 'Credenciales incorrectas' });
         }
 
-        const valid = await bcrypt.compare(password, user.password);
+        const valid = await require('bcryptjs').compare(password, user.password);
         if (!valid) {
             return res.status(401).json({ message: 'Credenciales incorrectas' });
         }
 
-        // aún no generamos el token (siguiente paso)
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET || 'test_secret',
+            { expiresIn: '1h' }
+        );
+
+        return res.status(200).json({
+            message: 'Login correcto',
+            token,
+            username: user.username
+        });
     });
 }
+
 
 module.exports = {
     registerUser,

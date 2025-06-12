@@ -1,9 +1,14 @@
 const { registerUser, loginUser } = require('../controllers/userController');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 jest.mock('bcryptjs', () => ({
     compare: jest.fn(() => Promise.resolve(false)),
     hash: jest.fn(() => Promise.resolve('hashed1234'))
+}));
+
+jest.mock('jsonwebtoken', () => ({
+    sign: jest.fn(() => 'fake-jwt-token')
 }));
 
 /**
@@ -136,22 +141,20 @@ describe('loginUser', () => {
         });
     });
 
-    const jwt = require('jsonwebtoken');
-
-    jest.mock('jsonwebtoken', () => ({
-        sign: jest.fn(() => 'fake-jwt-token')
-    }));
 
     it('debería devolver 200 y un token si las credenciales son correctas', (done) => {
-        bcrypt.compare.mockImplementation(() => Promise.resolve(true)); // contraseña correcta
+
+        bcrypt.compare.mockImplementation(() => Promise.resolve(true));
 
         const req = {
             body: { email: 'ana@mail.com', password: '1234' }
         };
+
         const res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
+
         const db = {
             get: (query, params, cb) => cb(null, {
                 id: 1,
@@ -161,10 +164,17 @@ describe('loginUser', () => {
             })
         };
 
+
         loginUser(req, res, db);
 
         setImmediate(() => {
-            expect(jwt.sign).toHaveBeenCalledWith({ id: 1, username: 'ana' }, expect.any(String), { expiresIn: '1h' });
+            const jwt = require('jsonwebtoken');
+
+            expect(jwt.sign).toHaveBeenCalledWith(
+                { id: 1, username: 'ana' },
+                expect.any(String),
+                { expiresIn: '1h' }
+            );
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith({
                 message: 'Login correcto',
