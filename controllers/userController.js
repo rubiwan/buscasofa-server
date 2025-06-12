@@ -1,4 +1,5 @@
 const { registerUserLogic } = require('../services/userService');
+const bcrypt = require('bcryptjs');
 
 function registerUser(req, res, db) {
     registerUserLogic(req.body, db)
@@ -16,12 +17,21 @@ function loginUser(req, res, db) {
         return res.status(400).json({ message: 'Todos los campos son obligatorios' });
     }
 
-    db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
         if (!user) {
             return res.status(401).json({ message: 'Credenciales incorrectas' });
         }
 
-        //sigue
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) {
+            return res.status(401).json({ message: 'Credenciales incorrectas' });
+        }
+
+        // aún no generamos el token (siguiente paso)
     });
 }
 
+module.exports = {
+    registerUser,
+    loginUser
+};
