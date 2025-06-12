@@ -7,6 +7,7 @@ function registerUser(req, res, db) {
 }
 
 module.exports = { registerUser };
+module.exports = { registerUser, loginUser };
 
 function loginUser(req, res, db) {
     const { email, password } = req.body;
@@ -15,10 +16,12 @@ function loginUser(req, res, db) {
         return res.status(400).json({ message: 'Todos los campos son obligatorios' });
     }
 
-    //implementacion futura
+    db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+        if (!user) {
+            return res.status(401).json({ message: 'Credenciales incorrectas' });
+        }
+
+        //sigue
+    });
 }
 
-module.exports = {
-    registerUser,
-    loginUser
-};
