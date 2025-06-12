@@ -7,3 +7,18 @@ function registerUser(req, res, db) {
 }
 
 module.exports = { registerUser };
+
+function loginUser(req, res, db) {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+    }
+
+    //implementacion futura
+}
+
+module.exports = {
+    registerUser,
+    loginUser
+};
