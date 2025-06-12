@@ -135,4 +135,44 @@ describe('loginUser', () => {
             done();
         });
     });
+
+    const jwt = require('jsonwebtoken');
+
+    jest.mock('jsonwebtoken', () => ({
+        sign: jest.fn(() => 'fake-jwt-token')
+    }));
+
+    it('debería devolver 200 y un token si las credenciales son correctas', (done) => {
+        bcrypt.compare.mockImplementation(() => Promise.resolve(true)); // contraseña correcta
+
+        const req = {
+            body: { email: 'ana@mail.com', password: '1234' }
+        };
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        const db = {
+            get: (query, params, cb) => cb(null, {
+                id: 1,
+                username: 'ana',
+                email: 'ana@mail.com',
+                password: 'hashCorrecto'
+            })
+        };
+
+        loginUser(req, res, db);
+
+        setImmediate(() => {
+            expect(jwt.sign).toHaveBeenCalledWith({ id: 1, username: 'ana' }, expect.any(String), { expiresIn: '1h' });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Login correcto',
+                token: 'fake-jwt-token',
+                username: 'ana'
+            });
+            done();
+        });
+    });
+
 });
