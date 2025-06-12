@@ -1,4 +1,4 @@
-const { registerUser } = require('../controllers/userController');
+const { registerUser, loginUser} = require('../controllers/userController');
 
 /**
  * Prueba unitaria para el registro de usuarios
@@ -78,4 +78,23 @@ it('debería registrar al usuario correctamente si no existe', (done) => {
         done();
     });
 });
+
+describe('loginUser', () => {
+    it('debería rechazar si falta el email o password', () => {
+        const req = {
+            body: { email: '', password: '' } // faltan ambos
+        };
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        const db = {}; // aún no se usa
+
+        loginUser(req, res, db);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Todos los campos son obligatorios' });
+    });
+});
+
 

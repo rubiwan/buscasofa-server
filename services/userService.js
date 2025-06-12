@@ -34,3 +34,7 @@ async function registerUserLogic({ username, email, password }, db) {
 }
 
 module.exports = { registerUserLogic };
+
+
+const { loginUser } = require('../controllers/userController');
+
