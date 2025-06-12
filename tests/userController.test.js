@@ -47,3 +47,35 @@ it('debería rechazar si el usuario ya existe', (done) => {
         done();
     });
 });
+
+const bcrypt = require('bcryptjs');
+
+jest.mock('bcryptjs', () => ({
+    hash: jest.fn(() => Promise.resolve('hashed1234'))
+}));
+
+it('debería registrar al usuario correctamente si no existe', (done) => {
+    const req = {
+        body: { username: 'nuevo', email: 'nuevo@mail.com', password: '1234' }
+    };
+
+    const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+    };
+
+    const db = {
+        get: (sql, params, cb) => cb(null, null), // no existe el usuario
+        run: (sql, params, cb) => cb(null) // inserción exitosa
+    };
+
+    registerUser(req, res, db);
+
+    setImmediate(() => {
+        expect(bcrypt.hash).toHaveBeenCalledWith('1234', 10);
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Usuario registrado correctamente' });
+        done();
+    });
+});
+
