@@ -8,6 +8,10 @@
     "sqlite3": "^5.1.7"
   },
   "scripts": {
-    "dev": "node index_dev.js"
+    "dev": "node index_dev.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^30.0.0"
   }
 }
