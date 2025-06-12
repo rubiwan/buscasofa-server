@@ -88,12 +88,35 @@ describe('loginUser', () => {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
-        const db = {}; // aún no se usa
+        const db = {}; // aun no se usa
 
         loginUser(req, res, db);
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({ message: 'Todos los campos son obligatorios' });
+    });
+});
+
+it('debería devolver 401 si el usuario no existe', (done) => {
+    const req = {
+        body: { email: 'noexiste@mail.com', password: '1234' }
+    };
+
+    const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+    };
+
+    const db = {
+        get: (query, params, cb) => cb(null, null) // no enc us
+    };
+
+    loginUser(req, res, db);
+
+    setImmediate(() => {
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Credenciales incorrectas' });
+        done();
     });
 });
 
