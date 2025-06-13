@@ -1,4 +1,4 @@
-const { saveCommentLogic } = require('../services/commentService');
+const { saveCommentLogic, getCommentsLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
 
 jest.mock('jsonwebtoken', () => ({

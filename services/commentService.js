@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 const SECRET = require('../secret').secret;
 
-async function saveCommentLogic({ token, station_id, comment }, db) {
+async function saveCommentLogic({token, station_id, comment}, db) {
     if (!token || !station_id || !comment) {
         return {
             status: 400,
-            body: { message: 'Datos incompletos' }
+            body: {message: 'Datos incompletos'}
         };
     }
 
@@ -15,7 +15,7 @@ async function saveCommentLogic({ token, station_id, comment }, db) {
     } catch {
         return {
             status: 401,
-            body: { message: 'Token inválido' }
+            body: {message: 'Token inválido'}
         };
     }
 
@@ -29,8 +29,28 @@ async function saveCommentLogic({ token, station_id, comment }, db) {
 
     return {
         status: 201,
-        body: { message: 'Comentario guardado' }
+        body: {message: 'Comentario guardado'}
     };
 }
 
-module.exports = { saveCommentLogic };
+async function getCommentsLogic(station_id, db) {
+    return new Promise((resolve, reject) => {
+        db.all(
+            'SELECT id, username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
+            [station_id],
+            (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({
+                        status: 200,
+                        body: rows
+                    });
+                }
+            }
+        );
+    });
+}
+
+
+module.exports = {saveCommentLogic, getCommentsLogic};
