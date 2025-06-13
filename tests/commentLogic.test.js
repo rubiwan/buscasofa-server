@@ -34,4 +34,31 @@ describe('saveCommentLogic', () => {
         expect(result.status).toBe(401);
         expect(result.body).toEqual({ message: 'Token inválido' });
     });
+
+    it('debería guardar el comentario y devolver 201 si los datos son válidos', async () => {
+        // simulando que el token es valido, asi
+        jwt.verify.mockImplementation(() => ({ id: 10, username: 'ana' }));
+
+        const input = {
+            token: 'token-válido',
+            station_id: 'station-123',
+            comment: 'Excelente servicio'
+        };
+
+        const db = {
+            run: jest.fn((sql, params, cb) => cb(null))
+        };
+
+        const result = await saveCommentLogic(input, db);
+
+        expect(db.run).toHaveBeenCalledWith(
+            expect.stringContaining('INSERT INTO comments'),
+            ['station-123', 10, 'ana', 'Excelente servicio'],
+            expect.any(Function)
+        );
+
+        expect(result.status).toBe(201);
+        expect(result.body).toEqual({ message: 'Comentario guardado' });
+    });
+
 });
