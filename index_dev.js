@@ -99,26 +99,9 @@ app.post('/api/login', (req, res) => {
 /**
  * Guardar comentario
  */
-app.post('/api/comments', (req, res) => {
-    const { token, station_id, comment, parent_id } = req.body;
-    if (!token || !station_id || !comment) return res.status(400).json({ message: 'Datos incompletos' });
+const { saveComment } = require('./controllers/commentController');
 
-    let payload;
-    try {
-        payload = jwt.verify(token, SECRET);
-    } catch {
-        return res.status(401).json({ message: 'Token inválido' });
-    }
-
-    db.run(
-        'INSERT INTO comments (station_id, user_id, username, comment, parent_id) VALUES (?, ?, ?, ?, ?)',
-        [station_id, payload.id, payload.username, comment, parent_id || null],
-        function (err) {
-            if (err) return res.status(500).json({ message: 'Error al guardar comentario', error: err.message });
-            res.status(201).json({ message: 'Comentario guardado' });
-        }
-    );
-});
+app.post('/api/comments', (req, res) => saveComment(req, res, db));
 
 /**
  * Obtener comentarios de una estación

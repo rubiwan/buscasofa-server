@@ -62,3 +62,22 @@ describe('saveCommentLogic', () => {
     });
 
 });
+
+describe('getCommentsLogic', () => {
+    it('debería devolver una lista vacía si no hay comentarios', async () => {
+        const db = {
+            all: jest.fn((sql, params, cb) => cb(null, [])) // no hay comentarios
+        };
+
+        const result = await getCommentsLogic('station-xyz', db);
+
+        expect(db.all).toHaveBeenCalledWith(
+            expect.stringContaining('SELECT'),
+            ['station-xyz'],
+            expect.any(Function)
+        );
+
+        expect(result.status).toBe(200);
+        expect(result.body).toEqual([]);
+    });
+});
