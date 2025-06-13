@@ -5,6 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 const SECRET = require("./secret").secret;
+const { saveComment, getComments } = require('./controllers/commentController');
 
 const app = express();
 app.use(express.json());
@@ -99,23 +100,14 @@ app.post('/api/login', (req, res) => {
 /**
  * Guardar comentario
  */
-const { saveComment } = require('./controllers/commentController');
+
 
 app.post('/api/comments', (req, res) => saveComment(req, res, db));
 
 /**
  * Obtener comentarios de una estación
  */
-app.get('/api/comments/:station_id', (req, res) => {
-    db.all(
-        'SELECT id, username, comment, created_at, parent_id FROM comments WHERE station_id = ? ORDER BY created_at DESC',
-        [req.params.station_id],
-        (err, rows) => {
-            if (err) return res.status(500).json({ message: 'Error al obtener comentarios', error: err.message });
-            res.json(rows);
-        }
-    );
-});
+app.get('/api/comments/:station_id', (req, res) => getComments(req, res, db));
 
 /**
  * Editar comentario
