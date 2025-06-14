@@ -1,4 +1,4 @@
-const { saveCommentLogic, getCommentsLogic } = require('../services/commentService');
+const { saveCommentLogic, getCommentsLogic, editCommentLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
 
 jest.mock('jsonwebtoken', () => ({
@@ -79,5 +79,19 @@ describe('getCommentsLogic', () => {
 
         expect(result.status).toBe(200);
         expect(result.body).toEqual([]);
+    });
+});
+
+describe('editCommentLogic', () => {
+    it('debería devolver 400 si faltan token o comentario', async () => {
+        const input = {
+            token: '',
+            comment: ''
+        };
+        const db = {};
+        const result = await editCommentLogic(input, '123', db);
+
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ message: 'Datos incompletos' });
     });
 });

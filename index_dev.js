@@ -100,8 +100,6 @@ app.post('/api/login', (req, res) => {
 /**
  * Guardar comentario
  */
-
-
 app.post('/api/comments', (req, res) => saveComment(req, res, db));
 
 /**
