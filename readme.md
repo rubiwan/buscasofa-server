@@ -12,7 +12,7 @@ Este proyecto es el backend de **Buscasofa**, una aplicación que permite a los 
 - Autenticación con JSON Web Tokens (JWT)
 - Base de datos persistente con SQLite
 - Backend modular con controladores y lógica separada
-- Tests unitarios y de integración con Jest y Cypress
+- Tests unitarios y de integración con Jest
 
 ---
 
@@ -23,7 +23,6 @@ buscasofa-server/
 ├── controllers/           # Controladores Express
 ├── services/              # Lógica de negocio desacoplada
 ├── tests/                 # Pruebas unitarias Jest
-├── database.db            # Base de datos SQLite
 ├── persistence /db.js     # Inicialización y conexión DB
 ├── index.js               # Entrada principal del servidor
 ├── secret.js              # Clave secreta para JWT
@@ -49,7 +48,7 @@ npm run dev
 npm test
 ```
 
-> El proyecto cuenta con pruebas unitarias usando el patrón **TDD (Red → Green → Refactor)**.
+> El proyecto cuenta con pruebas unitarias usando la técnica **TDD (Red → Green → Refactor)**.
 
 ---
 
