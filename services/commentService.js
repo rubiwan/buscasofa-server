@@ -84,4 +84,14 @@ async function editCommentLogic({ token, comment }, id, db) {
     };
 }
 
-module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic};
+async function deleteCommentLogic({ token }, id, db) {
+    if (!token) {
+        return {
+            status: 400,
+            body: { message: 'Token requerido' }
+        };
+    }
+
+}
+
+module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic};
