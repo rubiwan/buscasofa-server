@@ -5,7 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 const SECRET = require("./secret").secret;
-const { saveComment, getComments } = require('./controllers/commentController');
+const { saveComment, getComments, editComment } = require('./controllers/commentController');
 
 const app = express();
 app.use(express.json());
@@ -110,26 +110,7 @@ app.get('/api/comments/:station_id', (req, res) => getComments(req, res, db));
 /**
  * Editar comentario
  */
-app.put('/api/comments/:id', (req, res) => {
-    const { token, comment } = req.body;
-    if (!token || !comment) return res.status(400).json({ message: 'Datos incompletos' });
-
-    let payload;
-    try {
-        payload = jwt.verify(token, SECRET);
-    } catch {
-        return res.status(401).json({ message: 'Token inválido' });
-    }
-
-    db.run(
-        'UPDATE comments SET comment = ? WHERE id = ?',
-        [comment, req.params.id],
-        function (err) {
-            if (err) return res.status(500).json({ message: 'Error al editar comentario', error: err.message });
-            res.json({ message: 'Comentario editado' });
-        }
-    );
-});
+app.put('/api/comments/:id', (req, res) => editComment(req, res, db));
 
 /**
  * Eliminar comentario
