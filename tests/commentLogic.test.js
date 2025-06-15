@@ -1,4 +1,4 @@
-const { saveCommentLogic, getCommentsLogic, editCommentLogic } = require('../services/commentService');
+const { saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
 
 jest.mock('jsonwebtoken', () => ({
@@ -134,5 +134,17 @@ describe('editCommentLogic', () => {
         expect(jwt.verify).toHaveBeenCalledWith('token-falso', expect.any(String));
         expect(result.status).toBe(401);
         expect(result.body).toEqual({ message: 'Token inválido' });
+    });
+});
+
+describe('deleteCommentLogic', () => {
+    it('debería devolver 400 si falta el token', async () => {
+        const input = { token: '' };
+        const db = {};
+
+        const result = await deleteCommentLogic(input, '55', db);
+
+        expect(result.status).toBe(400);
+        expect(result.body).toEqual({ message: 'Token requerido' });
     });
 });
