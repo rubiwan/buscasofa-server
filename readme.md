@@ -1,32 +1,95 @@
-Creación de la tabla de usuarios en mySQL (para despliegue)
+# ⛽️ Buscasofa Backend API
 
-```sql
-CREATE DATABASE IF NOT EXISTS gasolineras;
-USE gasolineras;
+Este proyecto es el backend de **Buscasofa**, una aplicación que permite a los usuarios registrarse, iniciar sesión y dejar comentarios sobre estaciones de servicio. Está desarrollado con **Node.js**, **Express**, **SQLite** y cuenta con autenticación mediante JWT.
 
-CREATE TABLE IF NOT EXISTS users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50) NOT NULL UNIQUE,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+---
+
+### Características
+
+- Registro y login de usuarios
+- Comentarios por estación
+- Comentarios jerárquicos (respuestas)
+- Autenticación con JSON Web Tokens (JWT)
+- Base de datos persistente con SQLite
+- Backend modular con controladores y lógica separada
+- Tests unitarios y de integración con Jest y Cypress
+
+---
+
+### Estructura del proyecto
+
+```
+buscasofa-server/
+├── controllers/           # Controladores Express
+├── services/              # Lógica de negocio desacoplada
+├── tests/                 # Pruebas unitarias Jest
+├── database.db            # Base de datos SQLite
+├── persistence /db.js     # Inicialización y conexión DB
+├── index.js               # Entrada principal del servidor
+├── secret.js              # Clave secreta para JWT
+└── README.md              # Este archivo 😄
 ```
 
-Para instalar las dependencias: 
+---
 
-```
+### Instalación
+
+```bash
+git clone https://github.com/eQuechen/buscasofa-server.git
+cd buscasofa-server
 npm install
-```
-
-Para lanzar el servidor de desarrollo:
-
-```
 npm run dev
 ```
 
-o 
+---
 
+### Ejecutar tests
+
+```bash
+npm test
 ```
-node index_dev.js
-```
+
+> El proyecto cuenta con pruebas unitarias usando el patrón **TDD (Red → Green → Refactor)**.
+
+---
+
+### Endpoints disponibles
+
+| Método | Ruta                       | Descripción                            |
+|--------|----------------------------|----------------------------------------|
+| POST   | `/api/register`           | Registrar nuevo usuario                |
+| POST   | `/api/login`              | Iniciar sesión                         |
+| POST   | `/api/comments`           | Guardar un comentario (requiere token) |
+| GET    | `/api/comments/:station`  | Obtener comentarios de una estación    |
+| PUT    | `/api/comments/:id`       | Editar comentario                      |
+| DELETE | `/api/comments/:id`       | Eliminar comentario                    |
+| GET    | `/api/profile/user`       | Obtener comentarios del usuario actual |
+
+---
+
+### Tecnologías utilizadas
+
+- **Node.js + Express**
+- **SQLite3**
+- **JWT para autenticación**
+- **bcryptjs para hash de contraseñas**
+- **CORS**
+- **Jest + Supertest** (pruebas unitarias)
+
+---
+
+### Autores y créditos
+
+### 👨‍💻  [Anabel Díaz](https://github.com/rubiwan) y [Emilio Quechen](https://github.com/eQuechen) 🐢️
+
+Desarrollado con cariño por estudiantes de **ISA - Ingenierá del Software Avanzado**.  
+Incluye prácticas reales de diseño de software, modularización y pruebas automatizadas.
+
+---
+
+### Próximos pasos
+
+- Integración continua (CI/CD)
+- Migración a base de datos PostgreSQL
+- Gestión de roles y permisos
+- Versión en producción con Docker y Railway
