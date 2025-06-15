@@ -147,4 +147,18 @@ describe('deleteCommentLogic', () => {
         expect(result.status).toBe(400);
         expect(result.body).toEqual({ message: 'Token requerido' });
     });
+
+    jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
+
+    it('debería devolver 401 si el token es inválido', async () => {
+        const input = { token: 'token-falso' };
+        const db = {};
+
+        const result = await deleteCommentLogic(input, '55', db);
+
+        expect(jwt.verify).toHaveBeenCalledWith('token-falso', expect.any(String));
+        expect(result.status).toBe(401);
+        expect(result.body).toEqual({ message: 'Token inválido' });
+    });
+
 });
