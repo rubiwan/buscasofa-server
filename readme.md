@@ -37,14 +37,17 @@ buscasofa-server/
 ```bash
 git clone https://github.com/eQuechen/buscasofa-server.git
 ```
+
 2. Abrir el proyecto:
 ```bash
 cd buscasofa-server
 ```
+
 3. Instalar las dependencias:
 ```bash
 npm install
 ```
+
 4. Ejecutar el servidor:
 ```bash
 npm run dev
