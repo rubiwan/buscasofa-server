@@ -161,4 +161,23 @@ describe('deleteCommentLogic', () => {
         expect(result.body).toEqual({ message: 'Token inválido' });
     });
 
+    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
+
+    it('debería eliminar el comentario si el token es válido', async () => {
+        const input = { token: 'token-válido' };
+        const db = {
+            run: jest.fn((sql, params, cb) => cb(null))
+        };
+
+        const result = await deleteCommentLogic(input, '88', db);
+
+        expect(db.run).toHaveBeenCalledWith(
+            expect.stringContaining('DELETE FROM comments'),
+            ['88'],
+            expect.any(Function)
+        );
+
+        expect(result.status).toBe(200);
+        expect(result.body).toEqual({ message: 'Comentario eliminado' });
+    });
 });
