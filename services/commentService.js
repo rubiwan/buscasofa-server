@@ -116,5 +116,16 @@ async function deleteCommentLogic({ token }, id, db) {
     };
 }
 
+async function getUserCommentsLogic(req, db) {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return {
+            status: 401,
+            body: { message: 'Token no proporcionado' }
+        };
+    }
 
-module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic};
+}
+
+
+module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic, getUserCommentsLogic};
