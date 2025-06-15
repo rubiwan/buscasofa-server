@@ -102,6 +102,18 @@ async function deleteCommentLogic({ token }, id, db) {
         };
     }
 
+    await new Promise((resolve, reject) =>
+        db.run(
+            'DELETE FROM comments WHERE id = ?',
+            [id],
+            (err) => (err ? reject(err) : resolve())
+        )
+    );
+
+    return {
+        status: 200,
+        body: { message: 'Comentario eliminado' }
+    };
 }
 
 
