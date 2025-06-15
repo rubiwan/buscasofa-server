@@ -52,5 +52,15 @@ async function getCommentsLogic(station_id, db) {
     });
 }
 
+async function editCommentLogic({ token, comment }, id, db) {
+    if (!token || !comment) {
+        return {
+            status: 400,
+            body: { message: 'Datos incompletos' }
+        };
+    }
 
-module.exports = {saveCommentLogic, getCommentsLogic};
+}
+
+
+module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic};
