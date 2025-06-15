@@ -137,7 +137,20 @@ async function getUserCommentsLogic(req, db) {
         };
     }
 
+    const rows = await new Promise((resolve, reject) =>
+        db.all(
+            'SELECT * FROM comments WHERE user_id = ? ORDER BY created_at DESC',
+            [payload.id],
+            (err, rows) => (err ? reject(err) : resolve(rows))
+        )
+    );
+
+    return {
+        status: 200,
+        body: rows
+    };
 }
+
 
 
 
