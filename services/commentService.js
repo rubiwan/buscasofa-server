@@ -56,11 +56,19 @@ async function editCommentLogic({ token, comment }, id, db) {
     if (!token || !comment) {
         return {
             status: 400,
-            body: { message: 'Datos incompletos' }
+            body: {message: 'Datos incompletos'}
+        };
+    }
+
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+    } catch {
+        return {
+            status: 401,
+            body: {message: 'Token inválido'}
         };
     }
 
 }
-
-
 module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic};
