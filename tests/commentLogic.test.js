@@ -176,4 +176,35 @@ describe('getUserCommentsLogic', () => {
         expect(result.status).toBe(401);
         expect(result.body).toEqual({ message: 'Token inválido' });
     });
+
+    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
+
+    it('debería devolver los comentarios del usuario autenticado', async () => {
+        const req = {
+            headers: {
+                authorization: 'Bearer token-válido'
+            }
+        };
+
+        const comentarios = [
+            { id: 1, comment: 'Muy bien', created_at: '2024-01-01' },
+            { id: 2, comment: 'Perfecto', created_at: '2024-01-02' }
+        ];
+
+        const db = {
+            all: jest.fn((sql, params, cb) => cb(null, comentarios))
+        };
+
+        const result = await getUserCommentsLogic(req, db);
+
+        expect(db.all).toHaveBeenCalledWith(
+            expect.stringContaining('SELECT'),
+            [15],
+            expect.any(Function)
+        );
+
+        expect(result.status).toBe(200);
+        expect(result.body).toEqual(comentarios);
+    });
+
 });
