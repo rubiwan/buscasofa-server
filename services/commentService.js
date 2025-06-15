@@ -56,7 +56,7 @@ async function editCommentLogic({ token, comment }, id, db) {
     if (!token || !comment) {
         return {
             status: 400,
-            body: {message: 'Datos incompletos'}
+            body: { message: 'Datos incompletos' }
         };
     }
 
@@ -66,9 +66,22 @@ async function editCommentLogic({ token, comment }, id, db) {
     } catch {
         return {
             status: 401,
-            body: {message: 'Token inválido'}
+            body: { message: 'Token inválido' }
         };
     }
 
+    await new Promise((resolve, reject) =>
+        db.run(
+            'UPDATE comments SET comment = ? WHERE id = ?',
+            [comment, id],
+            (err) => (err ? reject(err) : resolve())
+        )
+    );
+
+    return {
+        status: 200,
+        body: { message: 'Comentario editado' }
+    };
 }
+
 module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic};
