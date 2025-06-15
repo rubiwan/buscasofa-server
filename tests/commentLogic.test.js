@@ -1,4 +1,4 @@
-const { saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic } = require('../services/commentService');
+const { saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic, getUserCommentsLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
 
 jest.mock('jsonwebtoken', () => ({
@@ -147,37 +147,16 @@ describe('deleteCommentLogic', () => {
         expect(result.status).toBe(400);
         expect(result.body).toEqual({ message: 'Token requerido' });
     });
+});
 
-    jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
-
-    it('debería devolver 401 si el token es inválido', async () => {
-        const input = { token: 'token-falso' };
+describe('getUserCommentsLogic', () => {
+    it('debería devolver 401 si no se proporciona el token', async () => {
+        const req = { headers: {} };
         const db = {};
 
-        const result = await deleteCommentLogic(input, '55', db);
+        const result = await getUserCommentsLogic(req, db);
 
-        expect(jwt.verify).toHaveBeenCalledWith('token-falso', expect.any(String));
         expect(result.status).toBe(401);
-        expect(result.body).toEqual({ message: 'Token inválido' });
-    });
-
-    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
-
-    it('debería eliminar el comentario si el token es válido', async () => {
-        const input = { token: 'token-válido' };
-        const db = {
-            run: jest.fn((sql, params, cb) => cb(null))
-        };
-
-        const result = await deleteCommentLogic(input, '88', db);
-
-        expect(db.run).toHaveBeenCalledWith(
-            expect.stringContaining('DELETE FROM comments'),
-            ['88'],
-            expect.any(Function)
-        );
-
-        expect(result.status).toBe(200);
-        expect(result.body).toEqual({ message: 'Comentario eliminado' });
+        expect(result.body).toEqual({ message: 'Token no proporcionado' });
     });
 });

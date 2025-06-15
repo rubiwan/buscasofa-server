@@ -5,7 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 const SECRET = require("./secret").secret;
-const { saveComment, getComments, editComment } = require('./controllers/commentController');
+const { saveComment, getComments, editComment , deleteComment} = require('./controllers/commentController');
 
 const app = express();
 app.use(express.json());
@@ -115,26 +115,7 @@ app.put('/api/comments/:id', (req, res) => editComment(req, res, db));
 /**
  * Eliminar comentario
  */
-app.delete('/api/comments/:id', (req, res) => {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ message: 'Token requerido' });
-
-    let payload;
-    try {
-        payload = jwt.verify(token, SECRET);
-    } catch {
-        return res.status(401).json({ message: 'Token inválido' });
-    }
-
-    db.run(
-        'DELETE FROM comments WHERE id = ?',
-        [req.params.id],
-        function (err) {
-            if (err) return res.status(500).json({ message: 'Error al eliminar comentario', error: err.message });
-            res.json({ message: 'Comentario eliminado' });
-        }
-    );
-});
+app.delete('/api/comments/:id', (req, res) => deleteComment(req, res, db));
 
 /**
  * Obtener comentarios de un usuario
