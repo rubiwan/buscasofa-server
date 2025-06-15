@@ -61,6 +61,30 @@ describe('saveCommentLogic', () => {
         expect(result.body).toEqual({ message: 'Comentario guardado' });
     });
 
+    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
+
+    it('debería actualizar el comentario si el token es válido', async () => {
+        const input = {
+            token: 'token-válido',
+            comment: 'Comentario editado correctamente'
+        };
+
+        const db = {
+            run: jest.fn((sql, params, cb) => cb(null))
+        };
+
+        const result = await editCommentLogic(input, '77', db);
+
+        expect(db.run).toHaveBeenCalledWith(
+            expect.stringContaining('UPDATE comments SET comment = ?'),
+            ['Comentario editado correctamente', '77'],
+            expect.any(Function)
+        );
+
+        expect(result.status).toBe(200);
+        expect(result.body).toEqual({ message: 'Comentario editado' });
+    });
+
 });
 
 describe('getCommentsLogic', () => {
