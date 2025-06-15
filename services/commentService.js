@@ -125,7 +125,20 @@ async function getUserCommentsLogic(req, db) {
         };
     }
 
+    const token = authHeader.split(' ')[1];
+
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+    } catch {
+        return {
+            status: 401,
+            body: { message: 'Token inválido' }
+        };
+    }
+
 }
+
 
 
 module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic, getUserCommentsLogic};
