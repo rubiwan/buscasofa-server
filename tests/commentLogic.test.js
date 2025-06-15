@@ -53,7 +53,13 @@ describe('saveCommentLogic', () => {
 
         expect(db.run).toHaveBeenCalledWith(
             expect.stringContaining('INSERT INTO comments'),
-            ['station-123', 10, 'ana', 'Excelente servicio'],
+            expect.arrayContaining([
+                'station-123',
+                10,
+                'ana',
+                'Excelente servicio',
+                null
+            ]),
             expect.any(Function)
         );
 

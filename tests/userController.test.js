@@ -1,9 +1,4 @@
-const { registerUser, loginUser } = require('../controllers/userController');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
 jest.mock('bcryptjs', () => ({
-    compare: jest.fn(() => Promise.resolve(false)),
     hash: jest.fn(() => Promise.resolve('hashed1234'))
 }));
 
@@ -11,21 +6,24 @@ jest.mock('jsonwebtoken', () => ({
     sign: jest.fn(() => 'fake-jwt-token')
 }));
 
+jest.mock('../secret', () => ({
+    secret: 'clave-falsa'
+}));
 
+const { registerUser } = require('../controllers/userController');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-/**
- * Pruebas para registerUser
- */
 describe('registerUser', () => {
     it('debería rechazar si falta el email', async () => {
         const req = {
-            body: { username: 'ana', password: '1234' } // falta el email
+            body: { username: 'ana', password: '1234' }
         };
         const res = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
-        const db = {}; // aún no se usa
+        const db = {};
 
         await registerUser(req, res, db);
 
@@ -42,9 +40,7 @@ describe('registerUser', () => {
             json: jest.fn()
         };
         const db = {
-            get: (sql, params, callback) => {
-                callback(null, { id: 1 }); // simula usuario existente
-            }
+            get: (sql, params, cb) => cb(null, { id: 1 })
         };
 
         registerUser(req, res, db);
@@ -64,22 +60,53 @@ describe('registerUser', () => {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
+
         const db = {
-            get: (sql, params, cb) => cb(null, null), // no existe
-            run: (sql, params, cb) => cb(null) // inserción exitosa
+            get: jest
+                .fn()
+                .mockImplementationOnce((sql, params, cb) => cb(null, null))
+                .mockImplementationOnce((sql, params, cb) => cb(null, { id: 99, username: 'nuevo' })),
+            run: function (sql, params, cb) {
+                cb.call({ lastID: 99 }, null); //
+            }
         };
 
-        registerUser(req, res, db);
+        try {
+            registerUser(req, res, db);
 
-        setImmediate(() => {
-            expect(bcrypt.hash).toHaveBeenCalledWith('1234', 10);
-            expect(res.status).toHaveBeenCalledWith(201);
-            expect(res.json).toHaveBeenCalledWith({ message: 'Usuario registrado correctamente' });
-            done();
-        });
+            setImmediate(() => {
+                try {
+                    expect(bcrypt.hash).toHaveBeenCalledWith('1234', 10);
+                    expect(jwt.sign).toHaveBeenCalledWith(
+                        { id: 99, username: 'nuevo' },
+                        'clave-falsa',
+                        { expiresIn: '1h' }
+                    );
+                    expect(res.status).toHaveBeenCalledWith(201);
+                    expect(res.json).toHaveBeenCalledWith({
+                        message: 'Usuario registrado correctamente',
+                        token: 'fake-jwt-token',
+                        username: 'nuevo'
+                    });
+                    done();
+                } catch (assertErr) {
+                    console.error('ASSERT ERROR:', assertErr);
+                    done(assertErr);
+                }
+            });
+        } catch (e) {
+            console.error('REGISTERUSER ERROR:', e);
+            done(e);
+        }
     });
 });
 
+jest.mock('bcryptjs', () => ({
+    hash: jest.fn(() => Promise.resolve('hashed1234')),
+    compare: jest.fn(() => Promise.resolve(false)) // agrega compare mockeado
+}));
+
+const { loginUser } = require('../controllers/userController');
 /**
  * Pruebas para loginUser
  */

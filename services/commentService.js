@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const SECRET = require('../secret').secret;
 
-async function saveCommentLogic({token, station_id, comment}, db) {
+async function saveCommentLogic({ token, station_id, comment, parent_id }, db) {
     if (!token || !station_id || !comment) {
         return {
             status: 400,
@@ -19,24 +19,31 @@ async function saveCommentLogic({token, station_id, comment}, db) {
         };
     }
 
-    await new Promise((resolve, reject) =>
-        db.run(
-            'INSERT INTO comments (station_id, user_id, username, comment) VALUES (?, ?, ?, ?)',
-            [station_id, payload.id, payload.username, comment],
-            (err) => (err ? reject(err) : resolve())
-        )
-    );
+    try {
+        await new Promise((resolve, reject) =>
+            db.run(
+                'INSERT INTO comments (station_id, user_id, username, comment, parent_id) VALUES (?, ?, ?, ?, ?)',
+                [station_id, payload.id, payload.username, comment, parent_id || null],
+                (err) => (err ? reject(err) : resolve())
+            )
+        );
 
-    return {
-        status: 201,
-        body: {message: 'Comentario guardado'}
-    };
+        return {
+            status: 201,
+            body: {message: 'Comentario guardado'}
+        };
+    } catch (err) {
+        return {
+            status: 500,
+            body: {message: 'Error al guardar comentario', error: err.message}
+        };
+    }
 }
 
 async function getCommentsLogic(station_id, db) {
     return new Promise((resolve, reject) => {
         db.all(
-            'SELECT id, username, comment, created_at FROM comments WHERE station_id = ? ORDER BY created_at DESC',
+            'SELECT id, username, comment, created_at, parent_id FROM comments WHERE station_id = ? ORDER BY created_at DESC',
             [station_id],
             (err, rows) => {
                 if (err) {

@@ -1,14 +1,13 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const SECRET = require('../secret').secret;
-const { loginUser } = require('../controllers/userController');
 
-/**
- * Lógica de negocio para registrar usuario
- */
 async function registerUserLogic({ username, email, password }, db) {
     if (!username || !email || !password) {
-        return { status: 400, body: { message: 'Todos los campos son obligatorios' } };
+        return {
+            status: 400,
+            body: { message: 'Todos los campos son obligatorios' }
+        };
     }
 
     const userExists = await new Promise((resolve, reject) =>
@@ -20,21 +19,48 @@ async function registerUserLogic({ username, email, password }, db) {
     );
 
     if (userExists) {
-        return { status: 409, body: { message: 'Usuario o email ya existe' } };
+        return {
+            status: 409,
+            body: { message: 'Usuario o email ya existe' }
+        };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await new Promise((resolve, reject) =>
+    const insertedId = await new Promise((resolve, reject) =>
         db.run(
             'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
             [username, email, hashedPassword],
-            (err) => (err ? reject(err) : resolve())
+            function (err) {
+                if (err) reject(err);
+                else resolve(this.lastID);
+            }
         )
     );
 
-    return { status: 201, body: { message: 'Usuario registrado correctamente' } };
+    const user = await new Promise((resolve, reject) =>
+        db.get('SELECT * FROM users WHERE id = ?', [insertedId], (err, row) =>
+            err ? reject(err) : resolve(row)
+        )
+    );
+
+    const token = jwt.sign(
+        { id: user.id, username: user.username },
+        SECRET,
+        { expiresIn: '1h' }
+    );
+
+    return {
+        status: 201,
+        body: {
+            message: 'Usuario registrado correctamente',
+            token,
+            username: user.username
+        }
+    };
 }
+
+
 
 /**
  * Lógica de negocio para login

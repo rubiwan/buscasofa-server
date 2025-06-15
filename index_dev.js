@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const SECRET = require("./secret").secret;
 const { saveComment, getComments, editComment , deleteComment, getUserComments} = require('./controllers/commentController');
+const { registerUser, loginUser } = require('./controllers/userController');
 
 const app = express();
 app.use(express.json());
@@ -32,9 +33,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
     `);
-    
-        // console.log('Eliminando la tabla de comentarios...');
-        // db.run(`DROP TABLE comments`);
+
 
         console.log('Creando la tabla de comentarios si no existe...');
         db.run(`
@@ -54,48 +53,12 @@ const db = new sqlite3.Database('./database.db', (err) => {
 /**
  * Registro de usuario
  */
-app.post('/api/register', (req, res) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password)
-        return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-
-    db.get('SELECT id FROM users WHERE username = ? OR email = ?', [username, email], async (err, row) => {
-        if (row) return res.status(409).json({ message: 'Usuario o email ya existe' });
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        db.run(
-            'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-            [username, email, hashedPassword],
-            function (err) {
-                if (err) return res.status(500).json({ message: 'Error en el servidor', error: err.message });
-                db.get('SELECT * FROM users WHERE id = ?', [this.lastID], (err, user) => {
-                    if (err) return res.status(500).json({ message: 'Error al obtener usuario', error: err.message });
-                    const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '1h' });
-                    res.status(201).json({ message: 'Usuario registrado correctamente', token, username: user.username });
-                });
-            }
-        );
-    });
-});
+app.post('/api/register', (req, res) => registerUser(req, res, db));
 
 /**
  * Login de usuario
  */
-app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password)
-        return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-        if (!user) return res.status(401).json({ message: 'Credenciales incorrectas' });
-
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(401).json({ message: 'Credenciales incorrectas' });
-
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET, { expiresIn: '1h' });
-        res.json({ message: 'Login correcto', token, username: user.username });
-    });
-});
+app.post('/api/login', (req, res) => loginUser(req, res, db));
 
 /**
  * Guardar comentario
