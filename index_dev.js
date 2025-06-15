@@ -5,7 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 const SECRET = require("./secret").secret;
-const { saveComment, getComments, editComment , deleteComment} = require('./controllers/commentController');
+const { saveComment, getComments, editComment , deleteComment, getUserComments} = require('./controllers/commentController');
 
 const app = express();
 app.use(express.json());
@@ -120,34 +120,6 @@ app.delete('/api/comments/:id', (req, res) => deleteComment(req, res, db));
 /**
  * Obtener comentarios de un usuario
  */
-app.get('/api/profile/user', (req, res) => {
-
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-        return res.status(401).json({ message: 'Token no proporcionado' });
-    }
-    const token = authHeader.split(' ')[1];
-
-    let payload;
-    try {
-        payload = jwt.verify(token, SECRET);
-
-    } catch {
-        return res.status(401).json({ message: 'Token inválido' });
-    }
-
-    db.all(
-        'SELECT * FROM comments WHERE user_id = ? ORDER BY created_at DESC',
-        [payload.id],
-        (err, rows) => {
-            if (err) return res.status(500).json({ message: 'Error al obtener tus comentarios', error: err.message });
-            const fs = require('fs');
-            const path = require('path');
-            console.log('Rows devueltas:', rows);
-            res.json(rows);
-        }
-    );
-});
-
+app.get('/api/profile/user', (req, res) => getUserComments(req, res, db));
 
 app.listen(4000, () => console.log('Servidor backend (SQLite) en http://localhost:4000'));

@@ -160,9 +160,9 @@ describe('getUserCommentsLogic', () => {
         expect(result.body).toEqual({ message: 'Token no proporcionado' });
     });
 
-    jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
-
     it('debería devolver 401 si el token es inválido', async () => {
+        jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
+
         const req = {
             headers: {
                 authorization: 'Bearer token-falso'
@@ -177,9 +177,9 @@ describe('getUserCommentsLogic', () => {
         expect(result.body).toEqual({ message: 'Token inválido' });
     });
 
-    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
-
     it('debería devolver los comentarios del usuario autenticado', async () => {
+        jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
+
         const req = {
             headers: {
                 authorization: 'Bearer token-válido'
@@ -206,5 +206,4 @@ describe('getUserCommentsLogic', () => {
         expect(result.status).toBe(200);
         expect(result.body).toEqual(comentarios);
     });
-
 });
