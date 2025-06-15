@@ -92,6 +92,17 @@ async function deleteCommentLogic({ token }, id, db) {
         };
     }
 
+    let payload;
+    try {
+        payload = jwt.verify(token, SECRET);
+    } catch {
+        return {
+            status: 401,
+            body: { message: 'Token inválido' }
+        };
+    }
+
 }
+
 
 module.exports = {saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic};
