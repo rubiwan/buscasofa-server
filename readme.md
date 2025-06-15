@@ -23,8 +23,8 @@ buscasofa-server/
 ├── controllers/           # Controladores Express
 ├── services/              # Lógica de negocio desacoplada
 ├── tests/                 # Pruebas unitarias Jest
-├── persistence /db.js     # Inicialización y conexión DB
-├── index.js               # Entrada principal del servidor
+├── persistence/db.js      # Inicialización y conexión DB
+├── index_dev.js           # Entrada principal del servidor
 ├── secret.js              # Clave secreta para JWT
 └── README.md              # Este archivo 😄
 ```
