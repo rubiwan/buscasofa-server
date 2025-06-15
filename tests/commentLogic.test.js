@@ -94,4 +94,21 @@ describe('editCommentLogic', () => {
         expect(result.status).toBe(400);
         expect(result.body).toEqual({ message: 'Datos incompletos' });
     });
+
+    jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
+
+    it('debería devolver 401 si el token es inválido', async () => {
+        const input = {
+            token: 'token-falso',
+            comment: 'Comentario actualizado'
+        };
+
+        const db = {}; // la base de datos no se usa todavía
+
+        const result = await editCommentLogic(input, '123', db);
+
+        expect(jwt.verify).toHaveBeenCalledWith('token-falso', expect.any(String));
+        expect(result.status).toBe(401);
+        expect(result.body).toEqual({ message: 'Token inválido' });
+    });
 });
