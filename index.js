@@ -5,7 +5,7 @@ const cors = require('cors');
 
 // Para hacer login:
 const jwt = require('jsonwebtoken');
-const SECRET = '6isvK1s%40nLRnku'; // Usa una clave secreta segura
+const { secret: SECRET } = require('./secret');
 
 const app = express();
 app.use(express.json());

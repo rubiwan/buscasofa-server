@@ -28,7 +28,18 @@ buscasofa-server/
 ├── secret.js              # Clave secreta para JWT
 └── README.md              # Este archivo 😄
 ```
+---
+### Configuración JWT
 
+El servidor necesita la variable de entorno `JWT_SECRET` para firmar y verificar tokens.
+
+En macOS/Linux, configura una clave aleatoria en la terminal antes de iniciar el servidor o ejecutar las pruebas:
+
+```bash
+export JWT_SECRET="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
+```
+
+La variable permanece disponible durante esa sesión de terminal. No guardes la clave en el repositorio.
 ---
 
 ### Instalación
