@@ -1,120 +1,131 @@
-# ⛽️ Buscasofa Backend API
+# Buscasofa Backend API
 
-Este proyecto es el backend de **Buscasofa**, una aplicación que permite a los usuarios registrarse, iniciar sesión y dejar comentarios sobre estaciones de servicio. Está desarrollado con **Node.js**, **Express**, **SQLite** y cuenta con autenticación mediante JWT.
+A Node.js and Express backend for Buscasofa, a petrol-station application with user accounts and station comments.
 
----
+The default server uses SQLite for local persistence. Routes delegate request handling to controllers, with application logic separated into services.
 
-### Características
+**Frontend:** [rubiwan/buscasofa](https://github.com/rubiwan/buscasofa)
 
-- Registro y login de usuarios
-- Comentarios por estación
-- Comentarios jerárquicos (respuestas)
-- Autenticación con JSON Web Tokens (JWT)
-- Base de datos persistente con SQLite
-- Backend modular con controladores y lógica separada
-- Tests unitarios y de integración con Jest
+## Features
 
----
+- User registration and login.
+- Password hashing with bcryptjs.
+- JWT authentication with tokens that expire after one hour.
+- Station comments and replies through an optional parent-comment ID.
+- Comment editing and deletion.
+- Retrieval of comments for the authenticated user.
+- Jest tests with mocked database and authentication dependencies.
 
-### Estructura del proyecto
+## Stack
 
+Node.js · Express · SQLite3 · JSON Web Tokens · bcryptjs · Jest
+
+The repository also includes a separate MySQL implementation in `index.js`. It is not the server started by `npm run dev`.
+
+## Run locally
+
+Locally checked with **Node.js 22.16.0** and npm 10.9.2 on macOS.
+
+### 1. Install dependencies
+
+```bash
+git clone https://github.com/rubiwan/buscasofa-server.git
+cd buscasofa-server
+npm ci
 ```
-buscasofa-server/
-├── controllers/           # Controladores Express
-├── services/              # Lógica de negocio desacoplada
-├── tests/                 # Pruebas unitarias Jest
-├── persistence/db.js      # Inicialización y conexión DB
-├── index_dev.js           # Entrada principal del servidor
-├── secret.js              # Clave secreta para JWT
-└── README.md              # Este archivo 😄
-```
----
-### Configuración JWT
 
-El servidor necesita la variable de entorno `JWT_SECRET` para firmar y verificar tokens.
+### 2. Configure the JWT secret
 
-En macOS/Linux, configura una clave aleatoria en la terminal antes de iniciar el servidor o ejecutar las pruebas:
+The server requires `JWT_SECRET`. Generate a random secret for your local terminal session:
 
 ```bash
 export JWT_SECRET="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
 ```
 
-La variable permanece disponible durante esa sesión de terminal. No guardes la clave en el repositorio.
----
+For Windows PowerShell:
 
-### Instalación
-
-
-1. Clonar el repositorio:
-```bash
-git clone https://github.com/eQuechen/buscasofa-server.git
+```powershell
+$env:JWT_SECRET = node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-2. Abrir el proyecto:
-```bash
-cd buscasofa-server
-```
+Keep the same secret across server restarts if existing tokens should remain valid. Generating a new secret invalidates tokens signed with the previous one. Do not commit secrets.
 
-3. Instalar las dependencias:
-```bash
-npm install
-```
+The application reads the environment directly; it does not automatically load a `.env` file.
 
-4. Ejecutar el servidor:
+### 3. Start the server
+
 ```bash
 npm run dev
 ```
 
+This runs `index_dev.js` on **http://localhost:4000**. SQLite creates `database.db` in the current working directory and initialises the `users` and `comments` tables. Start the server from the repository root.
 
----
+This is an API server: visiting `/` returns `Cannot GET /` because no homepage route is defined.
 
-### Ejecutar tests
+## API routes
+
+| Method | Route | Input / authentication |
+| --- | --- | --- |
+| POST | `/api/register` | JSON: `username`, `email`, `password` |
+| POST | `/api/login` | JSON: `email`, `password` |
+| POST | `/api/comments` | JSON: `token`, `station_id`, `comment`, optional `parent_id` |
+| GET | `/api/comments/:station_id` | Station ID in the URL; no token required |
+| PUT | `/api/comments/:id` | JSON: `token`, `comment` |
+| DELETE | `/api/comments/:id` | JSON: `token` |
+| GET | `/api/profile/user` | Header: `Authorization: Bearer <token>` |
+
+Registration and login return a token and username on success. Comments are associated with station IDs supplied by the client; this backend does not provide a petrol-station catalogue.
+
+### Example: read station comments
+
+With the server running:
+
+```bash
+curl http://localhost:4000/api/comments/station-example
+```
+
+A station with no comments returns an empty JSON array.
+
+## Tests and dependency checks
 
 ```bash
 npm test
+npm audit
 ```
 
-> El proyecto cuenta con pruebas unitarias usando la técnica **TDD (Red → Green → Refactor)**.
+Tests supply fake authentication secrets and mock JWT and database operations. They do not require the server's `JWT_SECRET` or a running database.
 
----
+During the October 2026 cleanup:
 
-### Endpoints disponibles
+- All **18 tests** in two suites passed locally.
+- SQLite 6.0.1 passed a separate in-memory table creation, insert and read check.
+- `npm audit` reported **0 vulnerabilities** after dependency updates.
 
-| Método | Ruta                       | Descripción                            |
-|--------|----------------------------|----------------------------------------|
-| POST   | `/api/register`           | Registrar nuevo usuario                |
-| POST   | `/api/login`              | Iniciar sesión                         |
-| POST   | `/api/comments`           | Guardar un comentario (requiere token) |
-| GET    | `/api/comments/:station`  | Obtener comentarios de una estación    |
-| PUT    | `/api/comments/:id`       | Editar comentario                      |
-| DELETE | `/api/comments/:id`       | Eliminar comentario                    |
-| GET    | `/api/profile/user`       | Obtener comentarios del usuario actual |
+These checks do not establish full HTTP or frontend-to-backend integration coverage. Audit results can change as new advisories are published.
 
----
+## Repository structure
 
-### Tecnologías utilizadas
+| Path | Purpose |
+| --- | --- |
+| `index_dev.js` | Default Express server using SQLite |
+| `controllers/` | HTTP request and response handling |
+| `services/` | Registration, login and comment logic |
+| `persistence/db.js` | SQLite connection and table creation |
+| `secret.js` | Required JWT secret from the environment |
+| `tests/` | Jest tests |
+| `index.js` | Separate MySQL server implementation |
+| `package-lock.json` | Locked dependency tree |
 
-- **Node.js + Express**
-- **SQLite3**
-- **JWT para autenticación**
-- **bcryptjs para hash de contraseñas**
-- **CORS**
-- **Jest + Supertest** (pruebas unitarias)
+Local dependencies, the SQLite database and editor files are excluded by `.gitignore`.
 
----
+## Current limitations
 
-### Autores y créditos
+This is an educational project. Comment editing and deletion verify a JWT but currently do not check that the authenticated user owns the comment. Ownership checks are needed before exposing these operations to untrusted users.
 
-### 👨‍💻  [Anabel Díaz](https://github.com/rubiwan) y [Emilio Quechen](https://github.com/eQuechen) 🐢️
+CORS currently uses its default permissive configuration. Full API integration tests and environment-based MySQL configuration are potential follow-up improvements.
 
-Desarrollado con cariño por estudiantes de **ISA - Ingenierá del Software Avanzado**.  
-Incluye prácticas reales de diseño de software, modularización y pruebas automatizadas.
+## Credits
 
----
+Developed as a group project for **Advanced Software Engineering (ISA)**.
 
-### Próximos pasos
-
-- Integración continua (CI/CD)
-- Migración a base de datos PostgreSQL
-- Gestión de roles y permisos
-- Versión en producción con Docker y Railway
+The existing project documentation credits [Anabel Díaz](https://github.com/rubiwan) and [Emilio Quechen](https://github.com/eQuechen). This repository is a fork with subsequent maintenance changes.
