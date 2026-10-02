@@ -1,3 +1,4 @@
+process.env.JWT_SECRET = 'unit-test-only-secret';
 const { saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic, getUserCommentsLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
 
