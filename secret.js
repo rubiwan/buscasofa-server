@@ -1,3 +1,7 @@
-let secret = "6isvK1s%40nLRnku";
+const secret = process.env.JWT_SECRET;
 
-export {secret};
+if (!secret || !secret.trim()) {
+    throw new Error('JWT_SECRET environment variable is required');
+}
+
+module.exports = { secret };

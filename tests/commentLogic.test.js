@@ -1,9 +1,18 @@
+process.env.JWT_SECRET = 'unit-test-only-secret';
 const { saveCommentLogic, getCommentsLogic, editCommentLogic, deleteCommentLogic, getUserCommentsLogic } = require('../services/commentService');
 const jwt = require('jsonwebtoken');
+
 
 jest.mock('jsonwebtoken', () => ({
     verify: jest.fn(() => { throw new Error('Token inválido') })
 }));
+
+beforeEach(() => {
+    jwt.verify.mockReset();
+    jwt.verify.mockImplementation(() => {
+        throw new Error('Token inválido');
+    });
+});
 
 describe('saveCommentLogic', () => {
     it('debería rechazar si faltan datos obligatorios', async () => {
@@ -36,7 +45,6 @@ describe('saveCommentLogic', () => {
     });
 
     it('debería guardar el comentario y devolver 201 si los datos son válidos', async () => {
-        // simulando que el token es valido, asi
         jwt.verify.mockImplementation(() => ({ id: 10, username: 'ana' }));
 
         const input = {
@@ -67,9 +75,10 @@ describe('saveCommentLogic', () => {
         expect(result.body).toEqual({ message: 'Comentario guardado' });
     });
 
-    jwt.verify.mockImplementation(() => ({ id: 15, username: 'ana' }));
 
     it('debería actualizar el comentario si el token es válido', async () => {
+        jwt.verify.mockReturnValue({ id: 15, username: 'ana' });
+
         const input = {
             token: 'token-válido',
             comment: 'Comentario editado correctamente'
@@ -90,7 +99,6 @@ describe('saveCommentLogic', () => {
         expect(result.status).toBe(200);
         expect(result.body).toEqual({ message: 'Comentario editado' });
     });
-
 });
 
 describe('getCommentsLogic', () => {
@@ -125,7 +133,6 @@ describe('editCommentLogic', () => {
         expect(result.body).toEqual({ message: 'Datos incompletos' });
     });
 
-    jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
 
     it('debería devolver 401 si el token es inválido', async () => {
         const input = {
@@ -167,7 +174,7 @@ describe('getUserCommentsLogic', () => {
     });
 
     it('debería devolver 401 si el token es inválido', async () => {
-        jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
+       jwt.verify.mockImplementation(() => { throw new Error('Token inválido') });
 
         const req = {
             headers: {
